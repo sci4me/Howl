@@ -39,7 +39,9 @@ local function SetupEnvironment(variables)
 	local env = setmetatable(variables or {}, { __index = _ENV })
 
 	function env.loadfile(path)
-		return assert(loadfile(path, env))
+		local fn = assert(loadfile(path))
+		setfenv(fn, env)
+		return fn
 	end
 
 	function env.dofile(path)

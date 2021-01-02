@@ -25,16 +25,28 @@ local function notImplemented(name)
 	return function() error(name .. " is not implemented", 2) end
 end
 
+local log
+if howlci then
+	log = howlci.log
+else
+	log = function() end
+end
+
 local path = require('pl.path')
 local dir = require('pl.dir')
 local file = require('pl.file')
 return {
+	os = {
+		clock = os.clock,
+		time = os.time,
+		getEnv = os.getenv
+	},
 	fs = {
 		combine = path.join,
 		normalise = path.normpath,
 		getDir = path.dirname,
 		getName = path.basename,
-		currentDir = function() return path.currentdir end,
+		currentDir = function() return path.currentdir() end,
 
 		read = file.read,
 		write = file.write,
@@ -59,7 +71,9 @@ return {
 		list = function(dir)
 			local result = {}
 			for path in path.dir(dir) do
-				result[#result + 1] = path
+				if path ~= "." and path ~= ".." then
+					result[#result + 1] = path
+				end
 			end
 
 			return result
@@ -90,7 +104,10 @@ return {
 		resetColor = function()
 			io.write(escapeBegin .. "0m")
 			io.flush()
-		end
+		end,
+		print = print,
+		write = io.write
 	},
+	log = log,
 	refreshYield = function() end
 }
